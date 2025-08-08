@@ -1,68 +1,42 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>インタラクティブ言語障害ガイド</title>
+    <title>言語障害ガイド</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: Warm Neutral with Soft Blue Accent -->
-    <!-- Application Structure Plan: 既存のタブベース構造に「理解度チェック」タブを追加。これにより、学習（探る・鑑別）から実践（クイズ）へのシームレスな移行を可能にする。クイズは一問一答形式で、即時フィードバック（正誤と根拠）を提供することで、能動的な知識の定着を促進する。この統合により、アプリケーションは単なる情報提供ツールから、包括的な学習プラットフォームへと進化する。 -->
-    <!-- Visualization & Content Choices: 
-        - Report Info: 言語 vs 発話の概念 -> Goal: Inform -> Viz/Method: HTML/CSSによる概念図 -> Interaction: なし -> Justification: 複雑な概念を視覚的に単純化し、アプリ全体の基礎知識として提示。
-        - Report Info: 失語症・ディサースリアのタイプ -> Goal: Compare/Inform -> Viz/Method: インタラクティブカード -> Interaction: クリックで詳細表示 -> Justification: 情報を階層化し、ユーザーが必要な情報だけを選択的に深掘りできるようにする。
-        - Report Info: 失語症とディサースリアの鑑別点 -> Goal: Organize/Apply -> Viz/Method: インタラクティブチェックリスト -> Interaction: チェックボックス選択で結果をハイライト -> Justification: ユーザーが知識を応用するシミュレーションを提供し、記憶の定着を図る。
-        - Report Info: 失語症の原因比率 -> Goal: Inform -> Viz/Method: Chart.jsによるドーナツチャート -> Interaction: ホバーで詳細表示 -> Justification: 「脳卒中が9割」という重要な統計情報を視覚的に強調する。
-        - Report Info: AACの種類 -> Goal: Organize -> Viz/Method: アイコン付きカード -> Interaction: なし -> Justification: 3つのカテゴリを視覚的に区別し、概要を素早く把握できるようにする。
-        - Report Info: クイズ -> Goal: Apply/Test -> Viz/Method: インタラクティブな多肢選択クイズ -> Interaction: 選択肢クリックで正誤と根拠表示、進行状況追跡 -> Justification: 学習内容の理解度を自己評価し、知識の定着を促す。
-    -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body {
-            font-family: 'Noto Sans JP', sans-serif;
-            background-color: #fdfaf6;
-            color: #4a4a4a;
+            font-family: 'Noto Sans JP', 'Manrope', sans-serif;
+            background-color: #F8F7F4;
+            color: #333;
         }
-        .tab-active {
-            border-bottom-color: #3b82f6;
-            color: #3b82f6;
-            font-weight: 700;
+        .glass-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        .tab-inactive {
-            border-bottom-color: transparent;
-            color: #6b7280;
+        .nav-link.active {
+            background-color: #3b82f6;
+            color: white;
         }
-        .content-section {
-            display: none;
+        .scroll-target {
+            scroll-margin-top: 2rem;
         }
-        .content-section.active {
-            display: block;
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
         }
-        .card {
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-        .modal-overlay {
-            transition: opacity 0.3s ease;
-        }
-        .modal-content {
-            transition: transform 0.3s ease;
-        }
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 400px;
-            margin-left: auto;
-            margin-right: auto;
-            height: auto;
-            max-height: 400px;
-        }
-        .quiz-option {
-            transition: background-color 0.2s;
+        .fade-in-section.is-visible {
+            opacity: 1;
+            transform: translateY(0);
         }
         .quiz-option.correct {
             background-color: #dcfce7;
@@ -79,116 +53,101 @@
 </head>
 <body class="antialiased">
 
-    <div class="container mx-auto px-4 py-8">
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-gray-800 mb-2">インタラクティブ言語障害ガイド</h1>
-            <p class="text-lg text-gray-600">失語症・ディサースリアの理解を深めるための専門家向け研修ツール</p>
+    <!-- Background Gradient -->
+    <div class="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-br from-blue-100 to-teal-50 opacity-50 -z-10"></div>
+
+    <!-- Sidebar Navigation -->
+    <nav class="hidden md:block fixed top-1/2 -translate-y-1/2 left-4 z-40">
+        <ul class="flex flex-col gap-2">
+            <li><a href="#intro" data-nav="intro" class="nav-link flex items-center justify-center w-12 h-12 rounded-full bg-white/80 backdrop-blur-sm shadow-md transition-all duration-300 hover:bg-blue-500 hover:text-white" title="概要"></a></li>
+            <li><a href="#disorders" data-nav="disorders" class="nav-link flex items-center justify-center w-12 h-12 rounded-full bg-white/80 backdrop-blur-sm shadow-md transition-all duration-300 hover:bg-blue-500 hover:text-white" title="障害を探る"></a></li>
+            <li><a href="#diagnosis" data-nav="diagnosis" class="nav-link flex items-center justify-center w-12 h-12 rounded-full bg-white/80 backdrop-blur-sm shadow-md transition-all duration-300 hover:bg-blue-500 hover:text-white" title="鑑別診断ツール"></a></li>
+            <li><a href="#rehab" data-nav="rehab" class="nav-link flex items-center justify-center w-12 h-12 rounded-full bg-white/80 backdrop-blur-sm shadow-md transition-all duration-300 hover:bg-blue-500 hover:text-white" title="リハビリ戦略"></a></li>
+            <li><a href="#quiz" data-nav="quiz" class="nav-link flex items-center justify-center w-12 h-12 rounded-full bg-white/80 backdrop-blur-sm shadow-md transition-all duration-300 hover:bg-blue-500 hover:text-white" title="理解度チェック"></a></li>
+        </ul>
+    </nav>
+    
+    <!-- Mobile Bottom Navigation -->
+    <nav class="md:hidden fixed bottom-0 left-0 w-full bg-white/80 backdrop-blur-sm shadow-t-lg z-40 border-t">
+        <ul class="flex justify-around">
+            <li><a href="#intro" data-nav="intro" class="nav-link flex flex-col items-center justify-center p-2 text-gray-600" title="概要"><span class="w-8 h-8"></span><span class="text-xs">概要</span></a></li>
+            <li><a href="#disorders" data-nav="disorders" class="nav-link flex flex-col items-center justify-center p-2 text-gray-600" title="障害を探る"><span class="w-8 h-8"></span><span class="text-xs">探る</span></a></li>
+            <li><a href="#diagnosis" data-nav="diagnosis" class="nav-link flex flex-col items-center justify-center p-2 text-gray-600" title="鑑別診断ツール"><span class="w-8 h-8"></span><span class="text-xs">鑑別</span></a></li>
+            <li><a href="#rehab" data-nav="rehab" class="nav-link flex flex-col items-center justify-center p-2 text-gray-600" title="リハビリ戦略"><span class="w-8 h-8"></span><span class="text-xs">戦略</span></a></li>
+            <li><a href="#quiz" data-nav="quiz" class="nav-link flex flex-col items-center justify-center p-2 text-gray-600" title="理解度チェック"><span class="w-8 h-8"></span><span class="text-xs">クイズ</span></a></li>
+        </ul>
+    </nav>
+
+
+    <div class="container mx-auto px-4 md:px-24 py-12 md:py-24">
+        <header class="text-center mb-16 md:mb-24">
+            <h1 class="text-4xl md:text-6xl font-extrabold text-gray-800 mb-4" style="font-family: 'Manrope', sans-serif;">言語障害ガイド</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">失語症・ディサースリアの理解を深めるための専門家向け研修ツール</p>
             <p class="text-md text-gray-500 mt-2">監修：介護サービスセンターささゆり</p>
         </header>
 
-        <nav class="mb-8 border-b border-gray-200">
-            <ul class="flex flex-wrap -mb-px justify-center text-sm font-medium text-center">
-                <li class="mr-2">
-                    <button class="nav-tab inline-block p-4 border-b-2 rounded-t-lg tab-active" data-tab="intro">概要</button>
-                </li>
-                <li class="mr-2">
-                    <button class="nav-tab inline-block p-4 border-b-2 rounded-t-lg tab-inactive" data-tab="disorders">障害を探る</button>
-                </li>
-                <li class="mr-2">
-                    <button class="nav-tab inline-block p-4 border-b-2 rounded-t-lg tab-inactive" data-tab="diagnosis">鑑別診断ツール</button>
-                </li>
-                 <li class="mr-2">
-                    <button class="nav-tab inline-block p-4 border-b-2 rounded-t-lg tab-inactive" data-tab="rehab">リハビリ戦略</button>
-                </li>
-                <li>
-                    <button class="nav-tab inline-block p-4 border-b-2 rounded-t-lg tab-inactive" data-tab="quiz">理解度チェック</button>
-                </li>
-            </ul>
-        </nav>
-
-        <main>
+        <main class="flex flex-col gap-16 md:gap-24">
             <!-- 概要セクション -->
-            <section id="intro" class="content-section active">
-                <div class="bg-white p-8 rounded-xl shadow-md">
-                    <div class="mb-6 border-b pb-6">
-                        <h3 class="text-xl font-bold mb-2 text-gray-800 text-center">音声ガイド</h3>
-                        <p class="text-center text-gray-600 mb-4">研修資料の音声ガイドをご利用いただけます。</p>
-                        <audio controls class="w-full" id="audio-guide" preload="metadata">
-                            <source src="https://files.catbox.moe/bgttvv.wav" type="audio/wav">
-                            ご利用のブラウザは音声再生に対応していません。
-                        </audio>
-                        <div id="audio-status" class="text-gray-500 text-center mt-2"></div>
-                        <div id="audio-error" class="text-red-500 text-center mt-2"></div>
+            <section id="intro" class="scroll-target fade-in-section">
+                <div class="glass-card p-8 rounded-2xl shadow-lg">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <div class="border-b md:border-b-0 md:border-r pb-8 md:pb-0 md:pr-8 border-gray-200">
+                            <h3 class="text-xl font-bold mb-4 text-gray-800 text-center">音声ガイド</h3>
+                            <audio controls class="w-full" id="audio-guide" preload="metadata">
+                                <source src="https://files.catbox.moe/bgttvv.wav" type="audio/wav">
+                                ご利用のブラウザは音声再生に対応していません。
+                            </audio>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                             <a href="https://acrobat.adobe.com/id/urn:aaid:sc:AP:3ce1df1b-0056-4337-beb1-9820b5eb67ae" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center justify-center bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-2 rounded-lg transition-colors text-center">
+                                <span class="w-8 h-8 mb-2" data-lucide="book-open"></span>
+                                <span>研修資料</span>
+                            </a>
+                             <a href="https://forms.gle/1BWwXhcXDtwWKJA49" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center justify-center bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-2 rounded-lg transition-colors text-center">
+                                <span class="w-8 h-8 mb-2" data-lucide="file-check"></span>
+                                <span>レポート提出</span>
+                            </a>
+                        </div>
                     </div>
-                    <div class="mb-6 border-b pb-6 text-center">
-                        <h3 class="text-xl font-bold mb-2 text-gray-800">研修資料</h3>
-                        <p class="text-gray-600 mb-4">以下のボタンから研修資料（Googleドキュメント）にアクセスできます。</p>
-                        <a href="https://docs.google.com/document/d/1VwZSsUoEhPQgMSDlXyHaA7dBRSvuWDxd4N7617-S73c/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-colors">
-                            資料を開く
-                        </a>
-                    </div>
-                    <div class="mb-6 border-b pb-6 text-center">
-                        <h3 class="text-xl font-bold mb-2 text-gray-800">研修レポート提出</h3>
-                        <p class="text-gray-600 mb-4">以下のボタンから研修レポート（Googleフォーム）を提出してください。</p>
-                        <a href="https://forms.gle/1BWwXhcXDtwWKJA49" target="_blank" rel="noopener noreferrer" class="inline-block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition-colors">
-                            レポートを提出
-                        </a>
-                    </div>
-                    <h2 class="text-2xl font-bold mb-4 text-gray-800">コミュニケーション障害の全体像</h2>
-                    <p class="mb-6 text-gray-700">このガイドは、言語障害の主要なタイプである失語症とディサースリアの理解を深めるためのインタラクティブなツールです。各障害の定義、特徴、鑑別点、そしてリハビリテーション戦略を探ることができます。まず最も重要な基礎概念として、「言語」と「発話」の違いを理解しましょう。</p>
-                    
-                    <div class="flex flex-col md:flex-row justify-center items-center gap-4 text-center p-6 bg-blue-50 rounded-lg">
-                        <div class="w-full md:w-2/5 p-6 bg-white rounded-lg shadow">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">基本概念：言語 vs 発話</h2>
+                    <div class="flex flex-col md:flex-row justify-center items-stretch gap-4 text-center">
+                        <div class="w-full p-6 bg-white/80 rounded-lg shadow-inner">
+                            <span class="w-12 h-12 mx-auto mb-2 text-blue-600" data-lucide="brain-circuit"></span>
                             <h3 class="text-xl font-bold text-blue-600">言語 (Language)</h3>
                             <p class="text-sm text-gray-500 mb-2">思考のソフトウェア</p>
                             <p class="text-gray-700">思考を形成し、意味を共有するための抽象的なルール体系（単語、文法）。</p>
                         </div>
-                        <div class="text-4xl font-bold text-blue-400 mx-4">→</div>
-                        <div class="w-full md:w-2/5 p-6 bg-white rounded-lg shadow">
+                        <div class="w-full p-6 bg-white/80 rounded-lg shadow-inner">
+                            <span class="w-12 h-12 mx-auto mb-2 text-teal-600" data-lucide="audio-lines"></span>
                             <h3 class="text-xl font-bold text-teal-600">発話 (Speech)</h3>
                             <p class="text-sm text-gray-500 mb-2">思考のハードウェア</p>
                             <p class="text-gray-700">言語情報を音声として物理的に作り出すための運動プロセス（呼吸、発声、構音）。</p>
                         </div>
                     </div>
-                    <div class="mt-6 text-center text-gray-600">
-                        <p><strong class="text-blue-600">失語症</strong>は主に<strong class="text-blue-600">言語（ソフトウェア）</strong>の問題であり、<strong class="text-teal-600">ディサースリア</strong>は主に<strong class="text-teal-600">発話（ハードウェア）</strong>の問題です。この違いが、全ての理解の鍵となります。</p>
-                    </div>
                 </div>
             </section>
 
             <!-- 障害を探るセクション -->
-            <section id="disorders" class="content-section">
-                <div class="bg-white p-8 rounded-xl shadow-md">
-                    <h2 class="text-2xl font-bold mb-2 text-gray-800">障害を探る</h2>
-                    <p class="mb-6 text-gray-700">失語症と言語の障害、ディサースリアと発話の障害について、それぞれのタイプをクリックして詳細を確認しましょう。各障害が脳のどの部分と関連しているか、どのような特徴があるかを探ります。</p>
-                    
-                    <div class="grid md:grid-cols-2 gap-8">
-                        <!-- 失語症エリア -->
-                        <div class="bg-blue-50 p-6 rounded-lg">
-                            <h3 class="text-xl font-bold mb-4 text-blue-700">失語症 (Aphasia) — 言語システムの障害</h3>
-                            <p class="text-sm mb-4 text-gray-600">脳の損傷により、「聞く・話す・読む・書く」という言語機能そのものが障害される状態です。</p>
-                            <div class="chart-container mb-4">
-                                <canvas id="aphasiaCausesChart"></canvas>
-                            </div>
-                            <div id="aphasia-cards" class="space-y-3"></div>
-                        </div>
-
-                        <!-- ディサースリアエリア -->
-                        <div class="bg-teal-50 p-6 rounded-lg">
-                            <h3 class="text-xl font-bold mb-4 text-teal-700">ディサースリア (Dysarthria) — 発話運動の障害</h3>
-                            <p class="text-sm mb-4 text-gray-600">発話に必要な筋肉の麻痺や運動制御の問題により、ろれつが回らなくなる状態です。</p>
-                            <div id="dysarthria-cards" class="space-y-3"></div>
-                        </div>
+            <section id="disorders" class="scroll-target fade-in-section">
+                <h2 class="text-3xl font-bold mb-6 text-center">障害を探る</h2>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="glass-card p-6 rounded-2xl shadow-lg">
+                        <h3 class="text-xl font-bold mb-4 text-blue-700">失語症 (Aphasia)</h3>
+                        <div class="chart-container mb-4"><canvas id="aphasiaCausesChart"></canvas></div>
+                        <div id="aphasia-cards" class="space-y-3"></div>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl shadow-lg">
+                        <h3 class="text-xl font-bold mb-4 text-teal-700">ディサースリア (Dysarthria)</h3>
+                        <p class="text-sm mb-4 text-gray-600">発話に必要な筋肉の麻痺や運動制御の問題により、ろれつが回らなくなる状態です。</p>
+                        <div id="dysarthria-cards" class="space-y-3"></div>
                     </div>
                 </div>
             </section>
 
             <!-- 鑑別診断ツールセクション -->
-            <section id="diagnosis" class="content-section">
-                <div class="bg-white p-8 rounded-xl shadow-md">
-                    <h2 class="text-2xl font-bold mb-2 text-gray-800">インタラクティブ鑑別診断ツール</h2>
-                    <p class="mb-6 text-gray-700">患者の症状に当てはまる項目をチェックすることで、失語症とディサースリアのどちらの可能性が高いかを簡易的に判断するツールです。これはあくまで学習補助ツールであり、実際の診断に代わるものではありません。</p>
-                    
+            <section id="diagnosis" class="scroll-target fade-in-section">
+                <h2 class="text-3xl font-bold mb-6 text-center">鑑別診断ツール</h2>
+                 <div class="glass-card p-8 rounded-2xl shadow-lg">
                     <div class="flex flex-col md:flex-row gap-8">
                         <div class="w-full md:w-1/2">
                             <h3 class="font-bold mb-4 text-lg">症状チェックリスト</h3>
@@ -197,84 +156,56 @@
                         <div class="w-full md:w-1/2">
                             <h3 class="font-bold mb-4 text-lg">可能性の高い障害</h3>
                             <div class="flex gap-4">
-                                <div id="aphasia-result" class="p-6 rounded-lg w-1/2 text-center border-4 border-transparent transition-all duration-300">
+                                <div id="aphasia-result" class="p-4 rounded-lg w-1/2 border-4 border-transparent transition-all duration-300 bg-white/50 flex items-center justify-center h-48">
                                     <h4 class="text-2xl font-bold text-blue-700">失語症</h4>
-                                    <p class="text-sm text-gray-600">言語の問題</p>
                                 </div>
-                                <div id="dysarthria-result" class="p-6 rounded-lg w-1/2 text-center border-4 border-transparent transition-all duration-300">
+                                <div id="dysarthria-result" class="p-4 rounded-lg w-1/2 border-4 border-transparent transition-all duration-300 bg-white/50 flex items-center justify-center h-48">
                                     <h4 class="text-2xl font-bold text-teal-700">ディサースリア</h4>
-                                    <p class="text-sm text-gray-600">発話運動の問題</p>
                                 </div>
                             </div>
-                            <p id="diagnosis-instruction" class="mt-4 text-center text-gray-500">左のリストから症状を選択してください。</p>
                         </div>
                     </div>
                 </div>
             </section>
 
             <!-- リハビリ戦略セクション -->
-            <section id="rehab" class="content-section">
-                <div class="bg-white p-8 rounded-xl shadow-md">
-                    <h2 class="text-2xl font-bold mb-2 text-gray-800">リハビリテーション戦略</h2>
-                    <p class="mb-6 text-gray-700">失語症やディサースリアのリハビリは多岐にわたります。機能回復を目指す訓練に加え、残された能力を最大限に活用するための代替・補助的コミュニケーション（AAC）の活用が非常に重要です。</p>
-                    
-                    <div class="grid md:grid-cols-2 gap-8 mb-8">
-                        <div>
-                            <h3 class="text-xl font-bold mb-2 text-blue-700">失語症のリハビリ</h3>
-                            <ul class="list-disc list-inside space-y-1 text-gray-700">
-                                <li><strong>機能回復訓練:</strong> 呼称、復唱、読解、書字など言語機能に直接働きかける。</li>
-                                <li><strong>先進的アプローチ:</strong> CI療法（集中的言語訓練）や脳刺激療法。</li>
-                                <li><strong>周囲の関わり:</strong> ゆっくり話す、短い文で、ジェスチャーを交えるなどの配慮。</li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold mb-2 text-teal-700">ディサースリアのリハビリ</h3>
-                            <ul class="list-disc list-inside space-y-1 text-gray-700">
-                                <li><strong>サブシステムへのアプローチ:</strong> 呼吸、発声、構音など問題のある部分に特化した訓練。</li>
-                                <li><strong>タイプ別アプローチ:</strong> パーキンソン病に対するLSVT LOUD®など。</li>
-                                <li><strong>代償的戦略:</strong> 発話速度を落とす、一語ずつ区切るなどの工夫。</li>
-                            </ul>
-                        </div>
-                    </div>
-
+            <section id="rehab" class="scroll-target fade-in-section">
+                 <h2 class="text-3xl font-bold mb-6 text-center">リハビリ戦略</h2>
+                 <div class="glass-card p-8 rounded-2xl shadow-lg">
                     <h3 class="text-xl font-bold mb-4 text-center text-gray-800">代替・補助的コミュニケーション (AAC)</h3>
-                    <p class="text-center mb-6 text-gray-600">発話が困難な場合の重要なコミュニケーション手段です。</p>
                     <div class="grid sm:grid-cols-3 gap-6 text-center">
-                        <div class="p-6 bg-gray-100 rounded-lg">
-                            <div class="text-4xl mb-2">👋</div>
+                        <div class="p-6 bg-white/50 rounded-lg">
+                            <span class="w-12 h-12 mx-auto mb-2 text-gray-700" data-lucide="hand"></span>
                             <h4 class="font-bold text-lg">ノン・テク</h4>
-                            <p class="text-sm text-gray-600">道具を使わない方法（ジェスチャー、表情、手話など）</p>
+                            <p class="text-sm text-gray-600">道具を使わない方法</p>
                         </div>
-                        <div class="p-6 bg-gray-100 rounded-lg">
-                            <div class="text-4xl mb-2">🖼️</div>
+                        <div class="p-6 bg-white/50 rounded-lg">
+                            <span class="w-12 h-12 mx-auto mb-2 text-gray-700" data-lucide="image"></span>
                             <h4 class="font-bold text-lg">ロー・テク</h4>
-                            <p class="text-sm text-gray-600">簡単な道具（絵カード、文字盤など）</p>
+                            <p class="text-sm text-gray-600">簡単な道具</p>
                         </div>
-                        <div class="p-6 bg-gray-100 rounded-lg">
-                            <div class="text-4xl mb-2">💻</div>
+                        <div class="p-6 bg-white/50 rounded-lg">
+                            <span class="w-12 h-12 mx-auto mb-2 text-gray-700" data-lucide="laptop"></span>
                             <h4 class="font-bold text-lg">ハイ・テク</h4>
-                            <p class="text-sm text-gray-600">電子機器（会話補助装置、アプリ、視線入力など）</p>
+                            <p class="text-sm text-gray-600">電子機器</p>
                         </div>
                     </div>
                 </div>
             </section>
 
             <!-- クイズセクション -->
-            <section id="quiz" class="content-section">
-                <div class="bg-white p-8 rounded-xl shadow-md max-w-3xl mx-auto">
+            <section id="quiz" class="scroll-target fade-in-section">
+                <h2 class="text-3xl font-bold mb-6 text-center">理解度チェック</h2>
+                <div class="glass-card p-8 rounded-2xl shadow-lg max-w-3xl mx-auto">
                     <div id="quiz-container">
                         <div id="quiz-start-screen">
-                            <h2 class="text-2xl font-bold mb-4 text-gray-800 text-center">理解度チェック</h2>
-                            <p class="text-center text-gray-600 mb-6">学習した内容を確認するためのクイズです。準備ができたら下のボタンを押して開始してください。</p>
                             <div class="text-center">
-                                <button id="start-quiz-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-colors">クイズを開始</button>
+                                <button id="start-quiz-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg transition-colors text-lg">クイズを開始</button>
                             </div>
                         </div>
-                        <div id="quiz-question-screen" class="hidden">
-                            <!-- クイズ問題はここに動的に挿入されます -->
-                        </div>
+                        <div id="quiz-question-screen" class="hidden"></div>
                         <div id="quiz-results-screen" class="hidden text-center">
-                             <h2 class="text-2xl font-bold mb-4 text-gray-800">クイズ結果</h2>
+                             <h3 class="text-2xl font-bold mb-4 text-gray-800">クイズ結果</h3>
                              <p id="quiz-score" class="text-4xl font-bold text-blue-600 mb-4"></p>
                              <p id="quiz-feedback" class="text-lg text-gray-700 mb-6"></p>
                              <button id="restart-quiz-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-colors">もう一度挑戦</button>
@@ -286,8 +217,8 @@
     </div>
 
     <!-- モーダル -->
-    <div id="modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none">
-        <div id="modal-content" class="modal-content bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8 transform scale-95">
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div id="modal-content" class="glass-card rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8 transform scale-95 transition-transform duration-300">
             <div class="flex justify-between items-start">
                 <h2 id="modal-title" class="text-2xl font-bold text-gray-800"></h2>
                 <button id="modal-close" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
@@ -298,13 +229,10 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // General App Logic
-    const tabs = document.querySelectorAll('.nav-tab');
-    const sections = document.querySelectorAll('.content-section');
-    const modal = document.getElementById('modal');
-    const modalClose = document.getElementById('modal-close');
-    const modalOverlay = document.querySelector('.modal-overlay');
+    // Lucide Icons
+    lucide.createIcons();
 
+    // Data
     const data = {
         aphasia: [
             { id: 'broca', name: 'ブローカ失語', fluent: '非流暢', comprehension: '比較的良好', repetition: '障害', detail: '発話は努力的でたどたどしく、助詞が抜けた「電文体」になりがち。相手の話の理解は比較的良好だが、言いたいことを言葉にするのが困難。' },
@@ -316,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function () {
         dysarthria: [
             { id: 'flaccid', name: '弛緩性', cause: '下位運動ニューロン', detail: '弱々しく、息が漏れるような声（気息声）、鼻に抜ける声（開鼻声）が特徴。' },
             { id: 'spastic', name: '痙性', cause: '上位運動ニューロン（両側）', detail: '絞り出すような、張り詰めた努力性の声。発話速度が遅く、声の高さが単調になりがち。' },
-            { "id": "ataxic", "name": "失調性", "cause": "小脳系", "detail": "酔っぱらいのようにリズムが乱れ、不規則で爆発的な発話。酩酊様（めいていよう）発話とも呼ばれる。" },
+            { id: 'ataxic', name: '失調性', cause: '小脳系', detail: '酔っぱらいのようにリズムが乱れ、不規則で爆発的な発話。酩酊様（めいていよう）発話とも呼ばれる。' },
             { id: 'hypokinetic', name: '運動低下性', cause: '基底核（ドーパミン系）', detail: 'パーキンソン病に典型的。小声で単調、徐々に早口になる「加速現象」が見られる。' },
             { id: 'hyperkinetic', name: '運動過多性', cause: '基底核', detail: '不随意運動により発話が妨害され、声の大きさやリズムが予測不能に変動する。' },
             { id: 'mixed', name: '混合性', cause: '複数の神経系', detail: '複数のタイプの特徴が混在する。ALS（筋萎縮性側索硬化症）などで見られる。' },
@@ -345,21 +273,86 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 
-    function switchTab(tabId) {
-        tabs.forEach(t => {
-            const isTarget = t.dataset.tab === tabId;
-            t.classList.toggle('tab-active', isTarget);
-            t.classList.toggle('tab-inactive', !isTarget);
-        });
-        sections.forEach(s => {
-            s.classList.toggle('active', s.id === tabId);
-        });
-    }
+    // --- Modern Navigation & Scroll Animation Logic ---
+    const sections = document.querySelectorAll('.scroll-target');
+    const navLinks = document.querySelectorAll('.nav-link');
+    const navIcons = {
+        intro: 'home',
+        disorders: 'search',
+        diagnosis: 'clipboard-check',
+        rehab: 'recycle',
+        quiz: 'lightbulb'
+    };
 
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+    // Populate nav icons
+    navLinks.forEach(link => {
+        const sectionId = link.getAttribute('data-nav');
+        if (link.querySelector('span')) { // For mobile nav
+             link.querySelector('span').setAttribute('data-lucide', navIcons[sectionId]);
+        } else { // For desktop nav
+             link.setAttribute('data-lucide', navIcons[sectionId]);
+        }
+    });
+    lucide.createIcons();
+    
+    // Scrollspy Logic
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.4
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            const id = entry.target.getAttribute('id');
+            document.querySelectorAll('.nav-link').forEach(link => {
+                if (link.getAttribute('data-nav') === id) {
+                    if (entry.isIntersecting) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                }
+            });
+        });
+    }, observerOptions);
+
+    sections.forEach(section => observer.observe(section));
+    
+    // Click to Scroll Logic
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            const targetSection = document.querySelector(targetId);
+            if (targetSection) {
+                targetSection.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+    
+    // Fade-in animation on scroll
+    const fadeInObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.fade-in-section').forEach(section => {
+        fadeInObserver.observe(section);
     });
 
+
+    // --- Modal Logic ---
+    const modal = document.getElementById('modal');
+    const modalClose = document.getElementById('modal-close');
+    
     function openModal(title, content) {
         document.getElementById('modal-title').textContent = title;
         document.getElementById('modal-body').innerHTML = content;
@@ -373,33 +366,19 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     modalClose.addEventListener('click', closeModal);
-    modalOverlay.addEventListener('click', (e) => {
-        if (e.target === modalOverlay) {
-            closeModal();
-        }
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
     });
 
+    // --- Content Generation ---
     function createCards() {
         const aphasiaContainer = document.getElementById('aphasia-cards');
         data.aphasia.forEach(item => {
             const card = document.createElement('div');
-            card.className = 'card p-4 bg-white rounded-lg shadow-sm cursor-pointer';
+            card.className = 'card p-4 bg-white/70 rounded-lg shadow-sm cursor-pointer transition-transform duration-200 hover:scale-105';
             card.innerHTML = `<h4 class="font-bold text-blue-800">${item.name}</h4><p class="text-sm text-gray-600">流暢性: ${item.fluent} / 理解: ${item.comprehension}</p>`;
             card.addEventListener('click', () => {
-                const content = `
-                    <p class="mb-4">${item.detail}</p>
-                    <table class="w-full text-sm text-left text-gray-500">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                            <tr><th scope="col" class="px-6 py-3">特徴</th><th scope="col" class="px-6 py-3">状態</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr class="bg-white border-b"><th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">発話の流暢性</th><td class="px-6 py-4">${item.fluent}</td></tr>
-                            <tr class="bg-gray-50 border-b"><th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">聴覚的理解</th><td class="px-6 py-4">${item.comprehension}</td></tr>
-                            <tr class="bg-white border-b"><th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">復唱</th><td class="px-6 py-4">${item.repetition}</td></tr>
-                        </tbody>
-                    </table>
-                `;
-                openModal(item.name, content);
+                openModal(item.name, `<p class="mb-4">${item.detail}</p>`);
             });
             aphasiaContainer.appendChild(card);
         });
@@ -407,11 +386,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const dysarthriaContainer = document.getElementById('dysarthria-cards');
         data.dysarthria.forEach(item => {
             const card = document.createElement('div');
-            card.className = 'card p-4 bg-white rounded-lg shadow-sm cursor-pointer';
+            card.className = 'card p-4 bg-white/70 rounded-lg shadow-sm cursor-pointer transition-transform duration-200 hover:scale-105';
             card.innerHTML = `<h4 class="font-bold text-teal-800">${item.name}</h4><p class="text-sm text-gray-600">関連部位: ${item.cause}</p>`;
             card.addEventListener('click', () => {
-                const content = `<p>${item.detail}</p>`;
-                openModal(item.name, content);
+                openModal(item.name, `<p>${item.detail}</p>`);
             });
             dysarthriaContainer.appendChild(card);
         });
@@ -421,9 +399,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const checklistContainer = document.getElementById('diagnosis-checklist');
         data.diagnosis.forEach((item, index) => {
             const div = document.createElement('div');
-            div.className = 'flex items-center';
+            div.className = 'flex items-center bg-white/50 p-3 rounded-md';
             div.innerHTML = `
-                <input id="q${index}" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 diagnosis-checkbox">
+                <input id="q${index}" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 diagnosis-checkbox">
                 <label for="q${index}" class="ml-3 block text-sm text-gray-700">${item.question}</label>
             `;
             checklistContainer.appendChild(div);
@@ -439,15 +417,6 @@ document.addEventListener('DOMContentLoaded', function () {
         let dysarthriaScore = 0;
         const checkboxes = document.querySelectorAll('.diagnosis-checkbox:checked');
         
-        if (checkboxes.length === 0) {
-            document.getElementById('aphasia-result').style.borderColor = 'transparent';
-            document.getElementById('dysarthria-result').style.borderColor = 'transparent';
-            document.getElementById('diagnosis-instruction').style.display = 'block';
-            return;
-        }
-        
-        document.getElementById('diagnosis-instruction').style.display = 'none';
-
         checkboxes.forEach(cb => {
             const index = parseInt(cb.id.replace('q', ''));
             aphasiaScore += data.diagnosis[index].aphasia;
@@ -460,13 +429,15 @@ document.addEventListener('DOMContentLoaded', function () {
         aphasiaResultEl.style.borderColor = 'transparent';
         dysarthriaResultEl.style.borderColor = 'transparent';
 
-        if (aphasiaScore > dysarthriaScore) {
-            aphasiaResultEl.style.borderColor = '#3b82f6';
-        } else if (dysarthriaScore > aphasiaScore) {
-            dysarthriaResultEl.style.borderColor = '#14b8a6';
-        } else {
-            aphasiaResultEl.style.borderColor = '#93c5fd';
-            dysarthriaResultEl.style.borderColor = '#5eead4';
+        if (checkboxes.length > 0) {
+            if (aphasiaScore > dysarthriaScore) {
+                aphasiaResultEl.style.borderColor = '#3b82f6';
+            } else if (dysarthriaScore > aphasiaScore) {
+                dysarthriaResultEl.style.borderColor = '#14b8a6';
+            } else {
+                 aphasiaResultEl.style.borderColor = '#93c5fd';
+                 dysarthriaResultEl.style.borderColor = '#5eead4';
+            }
         }
     }
     
@@ -475,111 +446,23 @@ document.addEventListener('DOMContentLoaded', function () {
         new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['脳卒中', 'その他（頭部外傷など）'],
-                datasets: [{
-                    label: '失語症の原因',
-                    data: [90, 10],
-                    backgroundColor: [ 'rgba(59, 130, 246, 0.7)', 'rgba(107, 114, 128, 0.5)' ],
-                    borderColor: [ 'rgba(59, 130, 246, 1)', 'rgba(107, 114, 128, 1)' ],
-                    borderWidth: 1
-                }]
+                labels: ['脳卒中', 'その他'],
+                datasets: [{ data: [90, 10], backgroundColor: [ '#3b82f6', '#9ca3af' ], borderWidth: 0 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'top' },
-                    title: { display: true, text: '失語症の主な原因' },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.label || '';
-                                if (label) { label += ': '; }
-                                if (context.parsed !== null) { label += context.parsed + '%'; }
-                                return label;
-                            }
-                        }
-                    }
-                }
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: {font: { family: "'Noto Sans JP', sans-serif"}} } }
             }
         });
     }
 
-    // --- START: Updated Audio Handling Logic ---
-    const audio = document.getElementById('audio-guide');
-    const audioStatusDisplay = document.getElementById('audio-status');
-    const audioErrorDisplay = document.getElementById('audio-error');
-
-    function updateAudioStatus(message) {
-        audioStatusDisplay.textContent = message;
-        audioErrorDisplay.textContent = '';
-    }
-
-    updateAudioStatus('音声ガイドを読み込み中です...');
-
-    audio.addEventListener('canplay', function() {
-        updateAudioStatus('音声の再生準備ができました。');
-        setTimeout(() => {
-            if (audio.paused) {
-                 updateAudioStatus('');
-            }
-        }, 3000);
-    });
-
-    audio.addEventListener('canplaythrough', function() {
-        updateAudioStatus('');
-    });
-
-    audio.addEventListener('progress', function() {
-        if (audio.duration > 0 && audio.buffered.length > 0) {
-            const bufferedEnd = audio.buffered.end(audio.buffered.length - 1);
-            const percent = (bufferedEnd / audio.duration) * 100;
-            updateAudioStatus(`音声データをダウンロード中... (${Math.round(percent)}%)`);
-        } else {
-            updateAudioStatus('音声データのダウンロードを開始しています...');
-        }
-    });
-
-    audio.addEventListener('playing', function() {
-        updateAudioStatus('');
-    });
-
-    audio.addEventListener('waiting', function() {
-        updateAudioStatus('バッファリング中です...');
-    });
-
-    audio.addEventListener('error', function(e) {
-        let errorMessage = '音声ファイルの読み込みに失敗しました。';
-        switch (e.target.error.code) {
-            case e.target.error.MEDIA_ERR_ABORTED:
-                errorMessage += ' 読み込みがユーザーによって中止されました。';
-                break;
-            case e.target.error.MEDIA_ERR_NETWORK:
-                errorMessage += ' ネットワークエラーが発生しました。接続を確認してください。';
-                break;
-            case e.target.error.MEDIA_ERR_DECODE:
-                errorMessage += ' ファイルのデコード中にエラーが発生しました。ファイルが破損している可能性があります。';
-                break;
-            case e.target.error.MEDIA_ERR_SRC_NOT_SUPPORTED:
-                errorMessage += ' 音声ファイルが見つかりません。ファイルが正しくアップロードされているか確認してください。';
-                break;
-            default:
-                errorMessage += ' 不明なエラーが発生しました。';
-                break;
-        }
-        audioStatusDisplay.textContent = '';
-        audioErrorDisplay.textContent = errorMessage;
-    });
-    // --- END: Updated Audio Handling Logic ---
-
-    // Quiz Logic
+    // --- Quiz Logic ---
     const quizData = data.quiz;
     const startScreen = document.getElementById('quiz-start-screen');
     const questionScreen = document.getElementById('quiz-question-screen');
     const resultsScreen = document.getElementById('quiz-results-screen');
     const startBtn = document.getElementById('start-quiz-btn');
     const restartBtn = document.getElementById('restart-quiz-btn');
-
     let currentQuestionIndex = 0;
     let score = 0;
 
@@ -594,59 +477,46 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function displayQuestion() {
         const question = quizData.questions[currentQuestionIndex];
-        let optionsHtml = '';
-        question.answerOptions.forEach((option, index) => {
-            optionsHtml += `
-                <button class="quiz-option w-full text-left p-4 border rounded-lg mb-3 bg-gray-50 hover:bg-gray-100" data-correct="${option.isCorrect}">
-                    ${option.text}
-                    <p class="rationale text-sm mt-2 text-gray-600">${option.rationale}</p>
-                </button>
-            `;
-        });
+        let optionsHtml = question.answerOptions.map(option => `
+            <button class="quiz-option w-full text-left p-4 border rounded-lg mb-3 bg-white/70 hover:bg-white/90 transition-colors" data-correct="${option.isCorrect}">
+                ${option.text}
+                <p class="rationale text-sm mt-2 text-gray-600">${option.rationale}</p>
+            </button>
+        `).join('');
 
         questionScreen.innerHTML = `
-            <div class="mb-4">
+            <div>
                 <p class="text-sm text-gray-500">問題 ${currentQuestionIndex + 1} / ${quizData.questions.length}</p>
                 <h3 class="text-xl font-semibold text-gray-800 mt-1">${question.question}</h3>
-                <p class="text-sm text-gray-500 mt-2">ヒント: ${question.hint}</p>
             </div>
-            <div id="quiz-options">${optionsHtml}</div>
+            <div class="mt-6">${optionsHtml}</div>
             <div class="mt-6 text-right">
                 <button id="next-question-btn" class="bg-gray-300 text-gray-600 font-bold py-2 px-6 rounded-lg cursor-not-allowed" disabled>次の問題へ</button>
             </div>
         `;
-
-        document.querySelectorAll('.quiz-option').forEach(button => {
-            button.addEventListener('click', selectAnswer);
-        });
+        document.querySelectorAll('.quiz-option').forEach(b => b.addEventListener('click', selectAnswer));
     }
 
     function selectAnswer(e) {
         const selectedButton = e.currentTarget;
         const isCorrect = selectedButton.dataset.correct === 'true';
+        if (isCorrect) score++;
         
-        // Disable all buttons and prevent further clicks once an answer is selected
         document.querySelectorAll('.quiz-option').forEach(button => {
             button.disabled = true;
-            // Show feedback
+            button.querySelector('.rationale').style.display = 'block';
             if (button.dataset.correct === 'true') {
                 button.classList.add('correct');
             } else {
-                 button.classList.add('incorrect');
+                button.classList.add('incorrect', 'opacity-60');
             }
-            // Show rationale
-            button.querySelector('.rationale').style.display = 'block';
         });
-
-        if (isCorrect) {
-            score++;
-        }
         
         const nextButton = document.getElementById('next-question-btn');
         nextButton.disabled = false;
         nextButton.classList.remove('bg-gray-300', 'text-gray-600', 'cursor-not-allowed');
         nextButton.classList.add('bg-blue-500', 'hover:bg-blue-600', 'text-white');
-        nextButton.addEventListener('click', nextQuestion, { once: true }); // Prevent multiple clicks
+        nextButton.addEventListener('click', nextQuestion, { once: true });
     }
 
     function nextQuestion() {
@@ -661,24 +531,14 @@ document.addEventListener('DOMContentLoaded', function () {
     function showResults() {
         questionScreen.classList.add('hidden');
         resultsScreen.classList.remove('hidden');
-        
-        const scoreEl = document.getElementById('quiz-score');
-        const feedbackEl = document.getElementById('quiz-feedback');
-        
-        scoreEl.textContent = `${score} / ${quizData.questions.length} 正解`;
-
-        let feedbackText = '';
+        document.getElementById('quiz-score').textContent = `${score} / ${quizData.questions.length} 正解`;
         const percentage = (score / quizData.questions.length) * 100;
-        if (percentage === 100) {
-            feedbackText = '素晴らしいです！全問正解です。完璧な理解度です。';
-        } else if (percentage >= 80) {
-            feedbackText = '優秀です！ほとんどの問題を理解できています。';
-        } else if (percentage >= 50) {
-            feedbackText = 'まずまずの成績です。間違えた箇所をもう一度復習してみましょう。';
-        } else {
-            feedbackText = 'もう少し学習が必要なようです。各セクションをもう一度見直してみましょう。';
-        }
-        feedbackEl.textContent = feedbackText;
+        let feedbackText = '';
+        if (percentage === 100) feedbackText = '素晴らしいです！全問正解です。';
+        else if (percentage >= 80) feedbackText = '優秀です！ほとんどの問題を理解できています。';
+        else if (percentage >= 50) feedbackText = 'まずまずの成績です。間違えた箇所を復習しましょう。';
+        else feedbackText = 'もう少し学習が必要なようです。各セクションを見直してみましょう。';
+        document.getElementById('quiz-feedback').textContent = feedbackText;
     }
 
     // Initial setup calls
@@ -691,4 +551,3 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 </body>
 </html>
-
