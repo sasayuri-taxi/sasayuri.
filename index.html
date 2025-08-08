@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja" class="scroll-smooth">
+<html lang="ja" style="scroll-behavior: smooth;">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,7 +27,7 @@
             color: white;
         }
         .scroll-target {
-            scroll-margin-top: 2rem;
+            scroll-margin-top: 4rem;
         }
         .fade-in-section {
             opacity: 0;
@@ -142,6 +142,24 @@
                         <div id="dysarthria-cards" class="space-y-3"></div>
                     </div>
                 </div>
+                <div class="mt-8 glass-card p-6 rounded-2xl shadow-lg">
+                    <h3 class="text-xl font-bold mb-4 text-purple-700">構音障害（機能性）</h3>
+                    <p class="text-sm mb-4 text-gray-600">舌や唇の動きに明らかな麻痺などはないものの、特定の音を正しく作ることが習慣的にできない状態です。主に小児に見られます。</p>
+                    <div class="grid sm:grid-cols-3 gap-4 text-center">
+                        <div class="p-4 bg-white/50 rounded-lg">
+                            <h4 class="font-bold text-lg">省略</h4>
+                            <p class="text-sm text-gray-600">「さかな」→「あかな」</p>
+                        </div>
+                        <div class="p-4 bg-white/50 rounded-lg">
+                            <h4 class="font-bold text-lg">置換</h4>
+                            <p class="text-sm text-gray-600">「さかな」→「たかな」</p>
+                        </div>
+                        <div class="p-4 bg-white/50 rounded-lg">
+                            <h4 class="font-bold text-lg">歪み</h4>
+                            <p class="text-sm text-gray-600">「さかな」→（歪んだ「し」のような音で発音）</p>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- 鑑別診断ツールセクション -->
@@ -157,10 +175,10 @@
                             <h3 class="font-bold mb-4 text-lg">可能性の高い障害</h3>
                             <div class="flex gap-4">
                                 <div id="aphasia-result" class="p-4 rounded-lg w-1/2 border-4 border-transparent transition-all duration-300 bg-white/50 flex items-center justify-center h-48">
-                                    <h4 class="text-2xl font-bold text-blue-700">失語症</h4>
+                                    <h4 class="text-xl md:text-2xl font-bold text-blue-700">失語症</h4>
                                 </div>
                                 <div id="dysarthria-result" class="p-4 rounded-lg w-1/2 border-4 border-transparent transition-all duration-300 bg-white/50 flex items-center justify-center h-48">
-                                    <h4 class="text-2xl font-bold text-teal-700">ディサースリア</h4>
+                                    <h4 class="text-xl md:text-2xl font-bold text-teal-700">ディサースリア</h4>
                                 </div>
                             </div>
                         </div>
@@ -295,30 +313,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     lucide.createIcons();
     
-    // Scrollspy Logic
-    const observerOptions = {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.4
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            const id = entry.target.getAttribute('id');
-            document.querySelectorAll('.nav-link').forEach(link => {
-                if (link.getAttribute('data-nav') === id) {
-                    if (entry.isIntersecting) {
-                        link.classList.add('active');
-                    } else {
-                        link.classList.remove('active');
-                    }
-                }
-            });
-        });
-    }, observerOptions);
-
-    sections.forEach(section => observer.observe(section));
-    
     // Click to Scroll Logic
     navLinks.forEach(link => {
         link.addEventListener('click', function(e) {
@@ -326,13 +320,34 @@ document.addEventListener('DOMContentLoaded', function () {
             const targetId = this.getAttribute('href');
             const targetSection = document.querySelector(targetId);
             if (targetSection) {
-                targetSection.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
+                window.scrollTo({
+                    top: targetSection.offsetTop - 64, // 64px = 4rem offset
+                    behavior: 'smooth'
                 });
             }
         });
     });
+    
+    // Scrollspy Logic
+    const observerOptions = {
+        root: null,
+        rootMargin: '-40% 0px -60% 0px',
+        threshold: 0
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const id = entry.target.getAttribute('id');
+                navLinks.forEach(link => {
+                    link.classList.toggle('active', link.getAttribute('data-nav') === id);
+                });
+            }
+        });
+    }, observerOptions);
+
+    sections.forEach(section => observer.observe(section));
+    
     
     // Fade-in animation on scroll
     const fadeInObserver = new IntersectionObserver((entries, observer) => {
